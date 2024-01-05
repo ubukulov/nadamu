@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
-import 'package:nadamu/screens/HomePageScreen2.dart';
+import 'package:nadamu/screens/HomePageScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nadamu/endpoints.dart';
 import 'package:nadamu/patterns/LoadingWidget.dart';
@@ -37,6 +37,11 @@ class _AuthScreenState extends State<AuthScreen> {
     prefs.setString('user_token', token);
   }
 
+  Future<void> saveUser(String user) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('user', user);
+  }
+
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('user_token');
@@ -69,8 +74,9 @@ class _AuthScreenState extends State<AuthScreen> {
       if (isAuthenticated) {
         setState(() {
           saveToken(responseData['token']);
+          saveUser(jsonEncode(responseData['user']));
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => HomePageScreen2()),
+            MaterialPageRoute(builder: (context) => HomePageScreen()),
           );
           stopLoading();
         });

@@ -52,7 +52,9 @@ class MyPassQR extends StatelessWidget{
           future: fetchUser(sharedPreferencesProvider.getToken('user_token')),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return Center(
+                child: CircularProgressIndicator(),
+              );
             } else if (snapshot.hasError) {
               return Text('Error1: ${snapshot.error}');
             } else if (snapshot.hasData) {

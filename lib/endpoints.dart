@@ -8,4 +8,5 @@ class Endpoints {
   static const String getKitchenItemsByFilter = '/get-items-by-filter';
   static const String getUserRoles = '/get-items-by-filter';
   static const String getUserByUuid = '/api/ashana/get-user-by-uuid';
+  static const String fixChanges = '/api/ashana/fix-changes';
 }

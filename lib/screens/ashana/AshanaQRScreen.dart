@@ -87,6 +87,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   bool isLoading = false;
   List<Employee> employee = [];
   bool isFoundEmployee = false;
+  bool isSuccessChange = false;
 
 
   // In order to get hot reload to work we need to pause the camera if the platform
@@ -98,26 +99,6 @@ class _QRViewExampleState extends State<QRViewExample> {
       controller!.pauseCamera();
     }
     controller!.resumeCamera();
-  }
-
-  _showModal() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context1) {
-        return AlertDialog(
-          title: Text('Modal Title'),
-          content: Text('This is a modal window.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Close'),
-              onPressed: () {
-                Navigator.of(context1).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -133,7 +114,7 @@ class _QRViewExampleState extends State<QRViewExample> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  if(employee.isNotEmpty)
+                  if(isFoundEmployee)
                     Row(
                       children: [
                         Column(
@@ -173,9 +154,9 @@ class _QRViewExampleState extends State<QRViewExample> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 ElevatedButton(
-                                    onPressed: () => {},
+                                    onPressed: employee.first.count < 2 ? () => _fixKitchen() : null,
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color.fromRGBO(126, 184, 39,1.0))
+                                      backgroundColor: employee.first.count < 2 ? MaterialStateProperty.all(Color.fromRGBO(126, 184, 39,1.0)) : MaterialStateProperty.all(Color.fromRGBO(204, 204, 204,1.0))
                                     ),
                                     child: Text('Подтвердить')
                                 ),
@@ -193,6 +174,44 @@ class _QRViewExampleState extends State<QRViewExample> {
                         )
                       ],
                     )
+                  else if(isSuccessChange)
+                    Column(
+                      children: [
+                        Padding(
+                          child: Text(
+                            '1 Обед Стандарт записан',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                                fontSize: 25.0,
+                                color: Colors.green
+                            ),
+                          ),
+                          padding: EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 0),
+                        ),
+                        Padding(
+                          child: Text(
+                            'на ${employee.first.full_name}',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                                fontSize: 20.0,
+                                color: Colors.green
+                            ),
+                          ),
+                          padding: EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 0),
+                        ),
+                        Padding(
+                          child: Text(
+                            'Талонов за сегодня:  ${employee.first.count}',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                                fontSize: 28.0,
+                                color: Colors.green
+                            ),
+                          ),
+                          padding: EdgeInsets.only(left: 20, right: 20),
+                        )
+                      ],
+                    )
                   else
                     Text(
                       'Сканируйте QR код',
@@ -200,45 +219,6 @@ class _QRViewExampleState extends State<QRViewExample> {
                           fontSize: 14.0
                       ),
                     )
-                  /*Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                            onPressed: () async {
-                              await controller?.toggleFlash();
-                              setState(() {});
-                            },
-                            child: FutureBuilder(
-                              future: controller?.getFlashStatus(),
-                              builder: (context, snapshot) {
-                                return Text('Flash: ${snapshot.data}');
-                              },
-                            )),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                            onPressed: () async {
-                              await controller?.flipCamera();
-                              setState(() {});
-                            },
-                            child: FutureBuilder(
-                              future: controller?.getCameraInfo(),
-                              builder: (context, snapshot) {
-                                if (snapshot.data != null) {
-                                  return Text(
-                                      'Camera facing ${describeEnum(snapshot.data!)}');
-                                } else {
-                                  return const Text('loading');
-                                }
-                              },
-                            )),
-                      )
-                    ],
-                  ),*/
                 ],
               ),
             ),
@@ -355,6 +335,46 @@ class _QRViewExampleState extends State<QRViewExample> {
           ),
         );
         isFoundEmployee = false;
+      });
+    }
+  }
+
+  Future<void> _fixKitchen() async {
+    final prefs = await SharedPreferences.getInstance();
+    startLoading();
+
+    final Uri apiUrl = Uri.https(Endpoints.baseUrl, Endpoints.fixChanges); // Replace with your API endpoint URL
+
+    final Map<String, dynamic> requestBody = {
+      'user_id': employee.first.user_id,
+    };
+
+    final response = await http.post(
+      apiUrl,
+      body: jsonEncode(requestBody),
+      headers: {
+        'Authorization': 'Bearer ${prefs.getString('user_token')}',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        stopLoading();
+        isFoundEmployee = false;
+        isSuccessChange = true;
+      });
+    } else {
+      setState(() {
+        stopLoading();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${response.body.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        isFoundEmployee = false;
+        isSuccessChange = false;
       });
     }
   }

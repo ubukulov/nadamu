@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nadamu/screens/HomePageScreen.dart';
-import 'package:nadamu/screens/HomePageScreen2.dart';
-import 'package:nadamu/screens/QRScreen.dart';
 import 'package:nadamu/screens/AuthScreen.dart';
-import 'package:nadamu/screens/ashana/AshanaScreen.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:nadamu/routers/Router.dart';
@@ -16,27 +13,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = new MyHttpOverrides();
   final prefs =  await SharedPreferences.getInstance();
-  //prefs.remove('user_token');
+  // prefs.remove('user_token');
+  // prefs.remove('user');
   print(prefs.getString('user_token'));
-  /*final prefs =  await SharedPreferences.getInstance();
-  if(prefs.getString('user_token') != null) {
-    runApp(MyApp());
-  } else {
-    runApp(AuthScreen());
-  }*/
-
-  /*runApp(MaterialApp(
-    home: Directionality(
-      textDirection: TextDirection.ltr,
-      child: MyHome(),
-    ),
-  ));*/
+  print(prefs.getString('user'));
 
   runApp(
     ChangeNotifierProvider(
       create: (context) => SharedPreferencesProvider(),
       child: (prefs.containsKey('user_token'))
-            ? AshanaScreen()
+            ? HomePageScreen()
             : AuthScreen(),
     ),
   );
