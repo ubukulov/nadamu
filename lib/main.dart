@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:nadamu/screens/HomePageScreen.dart';
-import 'package:nadamu/screens/AuthScreen.dart';
+import 'package:nadamu/data/store/app_store.dart';
+import 'package:nadamu/ui/screens/HomePageScreen.dart';
+import 'package:nadamu/ui/screens/AuthScreen.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import 'package:nadamu/routers/Router.dart';
-import 'package:nadamu/providers/shared_preferences_provider.dart';
+import 'package:nadamu/business/routers/Router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 var mainColor = const Color.fromRGBO(126, 184, 39, 1.0);
 void main() async {
   Routes.setupRouter();
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = new MyHttpOverrides();
+  await initializeDateFormatting('ru_RU', null);
   final prefs =  await SharedPreferences.getInstance();
-  // prefs.remove('user_token');
-  // prefs.remove('user');
-  print(prefs.getString('user_token'));
-  print(prefs.getString('user'));
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => SharedPreferencesProvider(),
+      create: (context) => AppStore(prefs: prefs),
       child: (prefs.containsKey('user_token'))
             ? HomePageScreen()
             : AuthScreen(),
